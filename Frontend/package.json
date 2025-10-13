@@ -1,0 +1,29 @@
+{
+  "name": "analytics-dashboard-frontend",
+  "version": "1.0.0",
+  "description": "Frontend dashboard for GA4 and GSC analytics",
+  "main": "index.html",
+  "scripts": {
+    "start": "node serve.js",
+    "dev": "node serve.js",
+    "build": "echo 'No build process needed for static files'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": [
+    "analytics",
+    "dashboard",
+    "ga4",
+    "gsc",
+    "frontend"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "your-frontend-repo-url"
+  }
+}
