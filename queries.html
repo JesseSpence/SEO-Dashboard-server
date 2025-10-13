@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSC Queries - Analytics Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1><i class="fas fa-arrow-left" id="backButton"></i> GSC Queries</h1>
+                <div class="header-controls">
+                    <button class="btn btn-primary" id="refreshQueries">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-secondary" id="copyQueries">
+                        <i class="fas fa-copy"></i> Copy Queries
+                    </button>
+                    <button class="btn btn-webhook" id="sendWebhook">
+                        <i class="fas fa-paper-plane"></i> Send to Webhook
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Page Info -->
+            <section class="page-info-section">
+                <div class="page-info-card">
+                    <h2 id="pageTitle">Page Queries</h2>
+                    <p id="pageUrl" class="page-url">Loading...</p>
+                    <div class="page-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Queries</span>
+                            <span class="stat-value" id="totalQueries">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Impressions</span>
+                            <span class="stat-value" id="totalImpressions">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Clicks</span>
+                            <span class="stat-value" id="totalClicks">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Avg CTR</span>
+                            <span class="stat-value" id="avgCTR">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Queries List -->
+            <section class="queries-list-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-search"></i> Search Queries</h2>
+                    <div class="section-controls">
+                        <select id="sortBy" class="filter-select">
+                            <option value="impressions">Sort by Impressions</option>
+                            <option value="clicks">Sort by Clicks</option>
+                            <option value="ctr">Sort by CTR</option>
+                            <option value="position">Sort by Position</option>
+                        </select>
+                        <input type="text" id="searchQuery" placeholder="Search queries..." class="search-input">
+                    </div>
+                </div>
+                
+                <div class="queries-content">
+                    <div class="queries-list" id="queriesList">
+                        <!-- Queries will be populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading queries...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="queries.js"></script>
+</body>
+</html>

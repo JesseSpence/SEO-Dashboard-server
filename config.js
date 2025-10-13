@@ -1,0 +1,53 @@
+// Google Search Console API Configuration
+const GSC_CONFIG = {
+    // Replace with your actual service account credentials
+    serviceAccount: {
+        // You'll need to download this from Google Cloud Console
+        // Go to: APIs & Services > Credentials > Create Service Account
+        // Download the JSON key file and paste the contents here
+        type: "service_account",
+        project_id: "aqueous-walker-455614-m3",
+        private_key_id: "2ab00feb749f06ae41658b645482996d4ef8c5f1",
+        private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDhCMOQAfN94yF8\nRq7fUBddigmm7kYSpNHWHuM8GvRiVXSlUZUwCCYhzUqqb9gU6+m4DKagIB/D45xp\nV96xAVLs0re65R0pJYJvnf/VfKdcK846EYe3lGOAY0Ij2u5NckhKLrr5q+MoZvr3\nBlIEPHBB7hOeA3GHeIhURmcy9D/ymPza+AG0h5QUeolCqJs1quxL9AxIrgX2wqPw\nyE0i3I8Ffopl9Bnra6anscOA3fvTO332yprhkjDnOnwDbuQ3qw/dXMbfg1mjg0bB\neHhNDGB708xAMiRwNoVEUPIiDoRs8SC+8tCkFc6ZWOJkxxMrV7VhtQSAUN7o7HIU\nKlV8EFBPAgMBAAECggEADaFLwxGzL1lOAmp/lgwSVjqRqhg9i0yLXyZAyjexvLED\nXy4JVL7xnFOEZb1ff6joX5r4jrNTaTiElUbauKrlXG3I7huJgCAC/gK6Z7JkqqsG\nkzLTnxVwT2rzqxtMGsnEwiWBcrTsDdrq8YJi/lmwzPWAH66CtlthGoWnI4lyxB1N\n9YWWyYItpw1ZFVvKE8ZlYhOIFaPx44aNY2j78czz5xH2hUKJXD7tELAJ8NxbtJiH\nYauDA+AIApEqZ32qMK7cKXss30pTlC3M6aL9Oo0KhC/wmeWTu3IifzEZgiBxQXuM\nCVvX0w+Wipr5GVIfDsDPHakhguzOoklUp5cGROKsqQKBgQD/fl1Fr0QRyHyLlAnJ\n5dT83zpcOrDrB+mLgOqIFEWs1VHhR8dMcbFGSRQYBINGvCbwXMfEe+32k8tgn+nL\nVwpQzUfBGHk33qC8+jzYG8cXn2VBU/1Kg3WQAbK9z2r1Goiudo+1fElJJAAEuHk2\nwYhXRtlsKzVmFBi4jw0a7Bs5twKBgQDhevHXxykOlXK+mIpH+PeOuJr6sVgqabVn\noqEoKZX3sdgCZG9h8xVB7BJkQtc0VdkPmqmyrQfoQPpg9xrV2RyEGGl75XeEsvbI\nXx4IYFUMauWbqzgyTy0+Tu4AAWHqMhP+RKeFHyFiyBbQLOLxBsqiymNvke9KlbEg\n8AeqVRR+KQKBgBn/tOQbcrTQjwPxG5HlBmh5Gso52rkABB8DDlqsnW56AqwHDtvT\nkfOSCi5rfyRajyfUeSugZNW7sm1xuGvNvqn8Sbn3kJZD3F1+pWRkZz0bJkWgk1za\nxcLSuWqhScQJYDFItVUFgbukoy/XydXtmb8v4X4lY3iwwNc/D1lW/2o/AoGBALXy\nk7zfRU4zYohSZyN0z68nYEfzW4W+D1g1b34NMKrTo88qZIbRtNGhQaYOGcJtk953\nm4BHCB5ucJxWSh1OOSiO2m/T1wIJuAIwXve7ZGXEzMs0+v/9zDB/WKZAd1aYWnHP\nzK4rVLF1bJNH5UlBhbqfPmYFiObSrEA78LOOPB8hAoGARCASZLaumP+wIUqA2nSK\nUEkAQeU69c14D81gZNvOtZzOB1wG7CMCyEDOoelLkfTWLra227bZo65vdYk6fj8g\nTUNuvIYqu5bNnqhlrOoEHENstQdIF7fTmxnaygvOgPyfOhDPzdZSKMIjKTi+9qn9\nIlBEPqGzX01BZe7iVhZ7Ix8=\n-----END PRIVATE KEY-----\n",
+        client_email: "fundingagent-dashboard@aqueous-walker-455614-m3.iam.gserviceaccount.com",
+        client_id: "113891539812399555228",
+        auth_uri: "https://accounts.google.com/o/oauth2/auth",
+        token_uri: "https://oauth2.googleapis.com/token",
+        auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+        client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/fundingagent-dashboard%40aqueous-walker-455614-m3.iam.gserviceaccount.com"
+        
+    },
+    
+    // Your website URL (must be verified in GSC)
+    siteUrl: "https://www.fundingagent.co.uk/",
+    
+    // API Configuration
+    apiVersion: "v1",
+    baseUrl: "https://www.googleapis.com/webmasters/v3",
+    
+    // Request limits and timeouts
+    requestTimeout: 30000, // 30 seconds
+    maxRetries: 3,
+    retryDelay: 1000, // 1 second
+    
+    // Date range limits
+    maxDays: 90, // Maximum days for data requests
+    defaultDays: 30 // Default date range
+};
+
+// Alternative: OAuth2 Configuration (for user authentication)
+const OAUTH_CONFIG = {
+    clientId: "your-oauth-client-id",
+    redirectUri: window.location.origin + "/oauth-callback.html",
+    scopes: [
+        "https://www.googleapis.com/auth/webmasters.readonly"
+    ],
+    discoveryDocs: [
+        "https://www.googleapis.com/discovery/v1/apis/webmasters/v3/rest"
+    ]
+};
+
+// Export configuration
+window.GSC_CONFIG = GSC_CONFIG;
+window.OAUTH_CONFIG = OAUTH_CONFIG;
+

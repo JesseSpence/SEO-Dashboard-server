@@ -1,0 +1,33 @@
+{
+  "name": "analytics-dashboard-backend",
+  "version": "1.0.0",
+  "description": "Secure backend for GA4 and GSC analytics dashboard",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "node app.js",
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "analytics",
+    "ga4",
+    "gsc",
+    "dashboard",
+    "backend"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "google-auth-library": "^9.4.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.8.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
