@@ -1,6 +1,6 @@
 class SignalPagesDashboard {
     constructor() {
-        this.backendUrl = 'http://localhost:3001';
+        this.backendUrl = 'http://13.222.185.250';
         this.signalType = this.getSignalTypeFromUrl();
         this.pages = [];
         this.init();

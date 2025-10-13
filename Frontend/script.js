@@ -3,7 +3,7 @@ class AnalyticsDashboard {
     constructor() {
         this.ga4Chart = null;
         this.gscChart = null;
-        this.backendUrl = 'http://localhost:3001';
+        this.backendUrl = 'http://13.222.185.250';
         this.currentData = {
             gsc: null,
             ga4: null,
