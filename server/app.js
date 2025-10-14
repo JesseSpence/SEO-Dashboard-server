@@ -7,7 +7,21 @@ require('dotenv').config();
 // Create Express app
 const app = express();
 
-// Middleware
+// CORS Middleware - Allow all origins
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Additional CORS middleware for extra compatibility
 app.use(cors({
   origin: true, // Allow all origins
   credentials: true
