@@ -53,5 +53,5 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
     console.log(`🚀 Frontend server running on http://localhost:${PORT}`);
     console.log(`📊 Open http://localhost:${PORT} to view your analytics dashboard`);
-    console.log(`🔗 Make sure your backend is running on http://13.222.185.250`);
+    console.log(`🔗 Make sure your backend is running on https://api.themetastack.com`);
 });

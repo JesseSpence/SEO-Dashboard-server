@@ -23,7 +23,14 @@ app.use((req, res, next) => {
 
 // Additional CORS middleware for extra compatibility
 app.use(cors({
-  origin: true, // Allow all origins
+  origin: [
+    'https://fundyboard.netlify.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5500',
+    'file://',
+    '*'
+  ],
   credentials: true
 }));
 

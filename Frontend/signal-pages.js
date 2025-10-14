@@ -1,6 +1,6 @@
 class SignalPagesDashboard {
     constructor() {
-        this.backendUrl = 'http://13.222.185.250';
+        this.backendUrl = 'https://api.themetastack.com';
         this.signalType = this.getSignalTypeFromUrl();
         this.pages = [];
         this.init();
