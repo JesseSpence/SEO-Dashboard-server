@@ -4,6 +4,9 @@ const path = require('path');
 const { GoogleAuth } = require('google-auth-library');
 require('dotenv').config();
 
+// Import real routes
+const routes = require('./routes');
+
 // Create Express app
 const app = express();
 
@@ -43,11 +46,27 @@ app.use((req, res, next) => {
   next();
 });
 
+// Use real routes
+app.use('/', routes);
+
 // Configuration
 const config = {
   siteUrl: process.env.GSC_SITE_URL || 'https://www.fundingagent.co.uk/',
   ga4PropertyId: process.env.GA4_PROPERTY_ID || '487607826',
-  serviceAccountPath: process.env.GOOGLE_APPLICATION_CREDENTIALS || './aqueous-walker-455614-m3-2ab00feb749f.json'
+  serviceAccountPath: process.env.GOOGLE_APPLICATION_CREDENTIALS || './aqueous-walker-455614-m3-2ab00feb749f.json',
+  // Environment variable credentials
+  serviceAccount: {
+    type: "service_account",
+    project_id: process.env.GOOGLE_PROJECT_ID,
+    private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    token_uri: "https://oauth2.googleapis.com/token",
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+    client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL
+  }
 };
 
 // Google Auth setup
@@ -55,18 +74,35 @@ let authClient = null;
 
 async function initializeAuth() {
   try {
-    const auth = new GoogleAuth({
-      keyFile: config.serviceAccountPath,
-      scopes: [
-        'https://www.googleapis.com/auth/webmasters.readonly',
-        'https://www.googleapis.com/auth/analytics.readonly',
-      ],
-    });
+    let auth;
+    
+    // Try environment variables first
+    if (config.serviceAccount.project_id && config.serviceAccount.private_key) {
+      console.log('🔐 Using environment variable credentials...');
+      auth = new GoogleAuth({
+        credentials: config.serviceAccount,
+        scopes: [
+          'https://www.googleapis.com/auth/webmasters.readonly',
+          'https://www.googleapis.com/auth/analytics.readonly',
+        ],
+      });
+    } else {
+      console.log('🔐 Using service account file...');
+      auth = new GoogleAuth({
+        keyFile: config.serviceAccountPath,
+        scopes: [
+          'https://www.googleapis.com/auth/webmasters.readonly',
+          'https://www.googleapis.com/auth/analytics.readonly',
+        ],
+      });
+    }
+    
     authClient = await auth.getClient();
     console.log('✅ Google authentication initialized successfully');
     return true;
   } catch (error) {
     console.error('❌ Google authentication failed:', error.message);
+    console.error('💡 Make sure your environment variables are set correctly');
     return false;
   }
 }
@@ -234,209 +270,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// GSC endpoints
-app.get('/api/gsc/top', async (req, res) => {
-  try {
-    const { start, end, limit = 200 } = req.query;
-    const startDate = start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const endDate = end || new Date().toISOString().split('T')[0];
-    
-    if (authClient) {
-      const data = await getGSCData(startDate, endDate, ['page']);
-      const pages = data.rows ? data.rows.map(row => ({
-        page: row.keys[0],
-        clicks: row.clicks,
-        impressions: row.impressions,
-        ctr: row.ctr,
-        position: row.position
-      })) : [];
-      res.json(pages.slice(0, parseInt(limit)));
-    } else {
-      const data = mockGSCData.topPages.slice(0, parseInt(limit));
-      res.json(data);
-    }
-  } catch (error) {
-    console.error('GSC top pages error:', error);
-    res.json(mockGSCData.topPages.slice(0, parseInt(req.query.limit || 200)));
-  }
-});
-
-app.get('/api/gsc/queries', async (req, res) => {
-  try {
-    const { page, start, end, limit = 50 } = req.query;
-    const startDate = start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const endDate = end || new Date().toISOString().split('T')[0];
-    
-    if (authClient && page) {
-      console.log(`🔍 Fetching queries for page: ${page}`);
-      
-      // Get queries with page dimension to filter by specific page
-      const data = await getGSCDataWithPageFilter(startDate, endDate, page);
-      const queries = data.rows ? data.rows.map(row => ({
-        query: row.keys[0],
-        clicks: row.clicks,
-        impressions: row.impressions,
-        ctr: row.ctr,
-        position: row.position
-      })) : [];
-      
-      console.log(`📊 Found ${queries.length} queries for page: ${page}`);
-      res.json(queries.slice(0, parseInt(limit)));
-    } else {
-      console.log('⚠️ No page parameter provided, returning mock data');
-      const mockQueries = [
-        { query: 'funding agent', clicks: 45, impressions: 1200, ctr: 0.037, position: 2.1 },
-        { query: 'business funding', clicks: 32, impressions: 890, ctr: 0.036, position: 3.2 },
-        { query: 'startup loans', clicks: 28, impressions: 750, ctr: 0.037, position: 4.1 }
-      ];
-      res.json(mockQueries.slice(0, parseInt(limit)));
-    }
-  } catch (error) {
-    console.error('GSC queries error:', error);
-    const mockQueries = [
-      { query: 'funding agent', clicks: 45, impressions: 1200, ctr: 0.037, position: 2.1 },
-      { query: 'business funding', clicks: 32, impressions: 890, ctr: 0.036, position: 3.2 },
-      { query: 'startup loans', clicks: 28, impressions: 750, ctr: 0.037, position: 4.1 }
-    ];
-    res.json(mockQueries.slice(0, parseInt(req.query.limit || 50)));
-  }
-});
-
-app.get('/api/gsc/daily', async (req, res) => {
-  try {
-    const { start, end } = req.query;
-    const startDate = start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const endDate = end || new Date().toISOString().split('T')[0];
-    
-    if (authClient) {
-      const data = await getGSCData(startDate, endDate, ['date']);
-      const dailyData = data.rows ? data.rows.map(row => ({
-        date: row.keys[0],
-        clicks: row.clicks,
-        impressions: row.impressions,
-        ctr: row.ctr,
-        position: row.position
-      })) : [];
-      res.json(dailyData);
-    } else {
-      res.json(mockGSCData.dailyData);
-    }
-  } catch (error) {
-    console.error('GSC daily error:', error);
-    res.json(mockGSCData.dailyData);
-  }
-});
-
-// GA4 endpoints
-app.get('/api/ga4/pages', async (req, res) => {
-  try {
-    const { start, end } = req.query;
-    const startDate = start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const endDate = end || new Date().toISOString().split('T')[0];
-    
-    if (authClient) {
-      const data = await getGA4Data(startDate, endDate);
-      const pages = data.rows ? data.rows.map(row => {
-        const metrics = row.metricValues.reduce((acc, metric) => {
-          acc[metric.name] = parseFloat(metric.value) || 0;
-          return acc;
-        }, {});
-        
-        return {
-          pagePath: row.dimensionValues[0]?.value || '',
-          sessions: metrics.sessions || 0,
-          engagedSessions: metrics.engagedSessions || 0,
-          averageSessionDuration: metrics.averageSessionDuration || 0,
-          conversions: metrics.conversions || 0
-        };
-      }) : [];
-      res.json(pages);
-    } else {
-      res.json(mockGA4Data.pages);
-    }
-  } catch (error) {
-    console.error('GA4 pages error:', error);
-    res.json(mockGA4Data.pages);
-  }
-});
-
-app.get('/api/ga4/metrics', async (req, res) => {
-  try {
-    const { start, end } = req.query;
-    const startDate = start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const endDate = end || new Date().toISOString().split('T')[0];
-    
-    if (authClient) {
-      const data = await getGA4Data(startDate, endDate);
-      const metrics = data.rows ? data.rows.reduce((acc, row) => {
-        const rowMetrics = row.metricValues.reduce((rowAcc, metric) => {
-          rowAcc[metric.name] = parseFloat(metric.value) || 0;
-          return rowAcc;
-        }, {});
-        
-        return {
-          totalSessions: (acc.totalSessions || 0) + (rowMetrics.sessions || 0),
-          totalEngagedSessions: (acc.totalEngagedSessions || 0) + (rowMetrics.engagedSessions || 0),
-          averageSessionDuration: (acc.averageSessionDuration || 0) + (rowMetrics.averageSessionDuration || 0),
-          totalConversions: (acc.totalConversions || 0) + (rowMetrics.conversions || 0)
-        };
-      }, {}) : mockGA4Data.metrics;
-      
-      // Calculate bounce rate (simplified)
-      const bounceRate = metrics.totalSessions > 0 ? 
-        ((metrics.totalSessions - metrics.totalEngagedSessions) / metrics.totalSessions) : 0;
-      
-      res.json({
-        ...metrics,
-        bounceRate: bounceRate
-      });
-    } else {
-      res.json(mockGA4Data.metrics);
-    }
-  } catch (error) {
-    console.error('GA4 metrics error:', error);
-    res.json(mockGA4Data.metrics);
-  }
-});
-
-// Scoreboard endpoint
-app.get('/api/scoreboard', (req, res) => {
-  const scoreboard = [
-    {
-      pagePath: '/',
-      priority: 85,
-      reasons: ['High impressions, low CTR - optimize meta description', 'Good position, needs content improvement'],
-      metrics: { current: 15000, previous: 12000, delta: 3000 }
-    },
-    {
-      pagePath: '/services',
-      priority: 72,
-      reasons: ['High traffic, low engagement - improve content quality', 'Good conversion potential'],
-      metrics: { current: 8500, previous: 7200, delta: 1300 }
-    },
-    {
-      pagePath: '/about',
-      priority: 58,
-      reasons: ['Stagnant performance - needs optimization', 'Good position but low CTR'],
-      metrics: { current: 12000, previous: 11800, delta: 200 }
-    }
-  ];
-  res.json(scoreboard);
-});
-
-// Cache endpoints
-app.post('/api/cache/clear', (req, res) => {
-  res.json({ message: 'Cache cleared successfully' });
-});
-
-app.get('/api/cache/stats', (req, res) => {
-  res.json({
-    totalEntries: 0,
-    validEntries: 0,
-    expiredEntries: 0,
-    cacheSize: 0
-  });
-});
+// All API endpoints are now handled by the real routes in ./src/routes.ts
 
 // Error handling middleware
 app.use((error, req, res, next) => {
