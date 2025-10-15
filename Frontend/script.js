@@ -3,7 +3,7 @@ class AnalyticsDashboard {
     constructor() {
         this.ga4Chart = null;
         this.gscChart = null;
-        this.backendUrl = 'http://localhost:3001';
+        this.backendUrl = 'https://api.themetastack.com';
         this.currentData = {
             gsc: null,
             ga4: null,

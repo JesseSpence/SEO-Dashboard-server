@@ -7,9 +7,30 @@ require('dotenv').config();
 // Create Express app
 const app = express();
 
-// Middleware
+// CORS Middleware - Allow all origins
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Additional CORS middleware for extra compatibility
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'file://'],
+  origin: [
+    'https://fundyboard.netlify.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5500',
+    'file://',
+    '*'
+  ],
   credentials: true
 }));
 
