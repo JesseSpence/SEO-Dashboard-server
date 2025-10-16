@@ -1,6 +1,6 @@
 class QueriesDashboard {
     constructor() {
-        this.backendUrl = 'https://api.themetastack.com/api';
+        this.backendUrl = 'https://api.themetastack.com';
         this.pageUrl = this.getPageUrlFromUrl();
         this.queries = [];
         this.init();
