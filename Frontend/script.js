@@ -174,7 +174,7 @@ class AnalyticsDashboard {
     async initializeAPI() {
         try {
             console.log('🔍 Attempting to connect to backend at:', this.backendUrl);
-            const healthResponse = await fetch(`${this.backendUrl}/health`);
+            const healthResponse = await fetch(`${this.backendUrl}/api/health`);
             console.log('📡 Health response status:', healthResponse.status);
             
             if (healthResponse.ok) {
