@@ -3,6 +3,10 @@ export default defineNuxtConfig({
 	compatibilityDate: '2025-07-15',
 	devtools: { enabled: true },
 	devServer: { port: 3001 },
+	nitro: {
+		routeRules: {
+		},
+	},
 	runtimeConfig: {
 		googleApplicationCredentials: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 		oauthClientId: process.env.GOOGLE_CLIENT_ID,
