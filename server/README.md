@@ -1,56 +1,99 @@
-# Analytics Dashboard Backend
+# Analytics Dashboard Backend (TypeScript)
 
-A secure backend API for GA4 and Google Search Console analytics dashboard.
+Backend API exposing Google Search Console (GSC) and Google Analytics 4 (GA4) data for the SEO dashboard.
 
-## Features
+## ✅ Features
 
-- Google Analytics 4 (GA4) data retrieval
-- Google Search Console (GSC) data integration
-- Secure authentication with Google service accounts
-- CORS-enabled API endpoints
-- TypeScript support
+-   Service Account or OAuth2 authentication (service account preferred)
+-   GSC endpoints: top pages, queries per page, daily metrics
+-   GA4 endpoints: pages aggregate, site metrics
+-   Scoreboard endpoint (priority suggestions)
+-   In-memory TTL cache
+-   Strict TypeScript configuration
 
-## Setup
+## 📦 Setup
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+1. Install dependencies:
+    ```bash
+    npm install
+    ```
+2. Copy `env.example` to `.env` and fill values (see below).
+3. Place your service account JSON somewhere safe (outside repo if possible) and set `GOOGLE_APPLICATION_CREDENTIALS` to its path.
+4. Grant the service account email access in:
+    - Search Console (settings → users & permissions)
+    - GA4 (Admin → Property Access Management)
+5. Run in dev (TypeScript directly):
+    ```bash
+    npm run dev
+    ```
+6. Build & run production:
+    ```bash
+    npm run build
+    npm start
+    ```
 
-2. **Configure environment variables:**
-   - Copy `env.example` to `.env`
-   - Fill in your Google Cloud service account credentials
-   - Set your CORS origin for frontend integration
+## 🔐 Environment Variables (from `env.example`)
 
-3. **Google Cloud Setup:**
-   - Create a service account in Google Cloud Console
-   - Download the JSON key file
-   - Add the service account email to your GA4 and GSC properties
-   - Copy the credentials to your `.env` file
+| Name                                                                 | Description                                                |
+| -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `GOOGLE_APPLICATION_CREDENTIALS`                                     | Absolute or relative path to service account JSON file     |
+| `GSC_SITE_URL`                                                       | Your verified property URL (e.g. https://www.example.com/) |
+| `GA4_PROPERTY_ID`                                                    | Numeric GA4 property ID                                    |
+| `PORT`                                                               | Server port (default 3001)                                 |
+| `CACHE_TTL_SECONDS`                                                  | TTL for in-memory cache entries (default 900)              |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN` | Optional OAuth2 credentials if not using service account   |
 
-4. **Run the server:**
-   ```bash
-   npm run dev
-   ```
+If both service account and OAuth credentials exist, service account wins.
 
-## Environment Variables
+## 🌐 API Endpoints
 
-See `env.example` for all required environment variables.
+| Endpoint                                    | Description                         |
+| ------------------------------------------- | ----------------------------------- |
+| `GET /health`                               | Health & mode info                  |
+| `GET /api/gsc/top?start&end&limit`          | Top pages by impressions            |
+| `GET /api/gsc/queries?page&start&end&limit` | Top queries for a specific page     |
+| `GET /api/gsc/daily?start&end`              | Daily GSC metrics                   |
+| `GET /api/ga4/pages?start&end`              | GA4 page-level aggregated metrics   |
+| `GET /api/ga4/metrics?start&end`            | Overall GA4 site metrics            |
+| `GET /api/scoreboard?start&end`             | Prioritized page update suggestions |
+| `POST /api/cache/clear`                     | Clear in-memory cache               |
+| `GET /api/cache/stats`                      | Cache statistics                    |
 
-## API Endpoints
+Date params default to the last 28 days if omitted.
 
-- `GET /api/ga4/data` - Retrieve GA4 analytics data
-- `GET /api/gsc/data` - Retrieve Google Search Console data
-- `GET /api/health` - Health check endpoint
+## 🛠 Development Scripts
 
-## Security
+| Script              | Purpose                        |
+| ------------------- | ------------------------------ |
+| `npm run dev`       | Run TS directly with ts-node   |
+| `npm run build`     | Compile to `dist/`             |
+| `npm start`         | Run compiled JS from `dist/`   |
+| `npm run clean`     | Remove `dist/`                 |
+| `npm run typecheck` | Strict type checking (no emit) |
 
-- Service account credentials are stored in environment variables
-- CORS is configured for specific origins
-- All sensitive data is excluded from version control
+## 🧪 Smoke Test
 
-## Development
+After `npm run dev` hit:
 
-- TypeScript compilation: `npm run build`
-- Development server: `npm run dev`
-- Production server: `npm start`
+```bash
+curl http://localhost:3001/health
+curl "http://localhost:3001/api/gsc/top?limit=10"
+curl "http://localhost:3001/api/ga4/metrics"
+```
+
+## 🔒 Security Notes
+
+-   Don’t commit credential JSON files.
+-   Prefer absolute path for `GOOGLE_APPLICATION_CREDENTIALS` in production.
+-   Consider moving to a secrets manager (GCP Secret Manager / Vault) later.
+
+## 🚀 Next Improvements
+
+-   Add proper rolling period calculations for scoreboard trends.
+-   Introduce Redis for distributed caching.
+-   Add Jest tests for clients and transforms.
+-   Graceful token refresh metrics & health diagnostics.
+
+---
+
+Questions or need a patch applied? Open an issue or ask. ✅
