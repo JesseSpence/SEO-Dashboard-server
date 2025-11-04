@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Dashboard - GA4 & GSC</title>
+    <title>Analytics Dashboard - GSC</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -20,6 +20,9 @@
                     <button class="btn btn-secondary" id="exportData">
                         <i class="fas fa-download"></i> Export
                     </button>
+                    <a href="dr-tracker.html" class="btn btn-secondary">
+                        <i class="fas fa-trophy"></i> DR Tracker
+                    </a>
                 </div>
             </div>
         </header>
@@ -76,6 +79,20 @@
                                     <td>Add/realign sections</td>
                                     <td><span class="status-indicator" id="intent-mismatch-status">Loading...</span></td>
                                 </tr>
+                                <tr class="signal-type-row" data-signal-type="high-impressions-queries">
+                                    <td><span class="source-badge gsc">GSC</span></td>
+                                    <td><span class="metric-signal">Pages with 500+ impressions</span></td>
+                                    <td>High visibility pages with optimization potential</td>
+                                    <td>>500 impressions</td>
+                                    <td><span class="status-indicator" id="high-impressions-queries-status">Loading...</span></td>
+                                </tr>
+                                <tr class="signal-type-row" data-signal-type="position-11-20">
+                                    <td><span class="source-badge gsc">GSC</span></td>
+                                    <td><span class="metric-signal">Pages ranking position 11-20</span></td>
+                                    <td>Opportunity to push pages into top 10 results</td>
+                                    <td>Avg position 11-20</td>
+                                    <td><span class="status-indicator" id="position-11-20-status">Loading...</span></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -103,12 +120,12 @@
                 <div class="cards-grid">
                     <div class="metric-card">
                         <div class="card-icon">
-                            <i class="fas fa-users"></i>
+                            <i class="fas fa-hand-pointer"></i>
                         </div>
                         <div class="card-content">
-                            <h3>Total Sessions</h3>
-                            <div class="metric-value" id="totalSessions">-</div>
-                            <div class="metric-change" id="sessionsChange">-</div>
+                            <h3>Total Clicks</h3>
+                            <div class="metric-value" id="totalClicks">-</div>
+                            <div class="metric-change" id="clicksChange">-</div>
                         </div>
                     </div>
                     
@@ -190,8 +207,8 @@
 
             <!-- Analytics Sections -->
             <div class="analytics-grid">
-                <!-- GA4 Analytics Section -->
-                <section class="analytics-section">
+                <!-- GA4 Analytics Section - Hidden -->
+                <section class="analytics-section hidden-section">
                     <div class="section-header">
                         <h2><i class="fab fa-google"></i> Google Analytics 4</h2>
                         <div class="section-controls">

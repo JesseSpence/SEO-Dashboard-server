@@ -1,12 +1,10 @@
 // Enhanced Analytics Dashboard with Update-Worthy Signals
 class AnalyticsDashboard {
     constructor() {
-        this.ga4Chart = null;
         this.gscChart = null;
         this.backendUrl = 'https://api.themetastack.com';
         this.currentData = {
             gsc: null,
-            ga4: null,
             previous: null
         };
         this.init();
@@ -35,9 +33,7 @@ class AnalyticsDashboard {
         });
 
         // Date range selectors
-        document.getElementById('ga4DateRange').addEventListener('change', (e) => {
-            this.updateGA4Data(e.target.value);
-        });
+        // GA4 date range selector removed - GA4 section is hidden
 
         document.getElementById('gscDateRange').addEventListener('change', (e) => {
             this.updateGSCData(e.target.value);
@@ -70,57 +66,7 @@ class AnalyticsDashboard {
     }
 
     initializeCharts() {
-        // GA4 Traffic Chart
-        const ga4Ctx = document.getElementById('ga4TrafficChart').getContext('2d');
-        this.ga4Chart = new Chart(ga4Ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Sessions',
-                    data: [],
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                }, {
-                    label: 'Engaged Sessions',
-                    data: [],
-                    borderColor: '#e74c3c',
-                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'GA4 Traffic Overview'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    }
-                }
-            }
-        });
+        // GA4 Traffic Chart initialization removed - GA4 section is hidden
 
         // GSC Performance Chart
         const gscCtx = document.getElementById('gscPerformanceChart').getContext('2d');
@@ -202,7 +148,6 @@ class AnalyticsDashboard {
         try {
             await Promise.all([
                 this.updateOverviewMetrics(),
-                this.updateGA4Data('30d'),
                 this.updateGSCData('30d'),
                 this.loadTopPages('30d'),
                 this.loadSuggestions()
@@ -247,48 +192,29 @@ class AnalyticsDashboard {
             const gscData = await gscResponse.json();
             console.log('✅ GSC data loaded:', gscData.length, 'pages');
             
-            // Get GA4 data for sessions and engagement
-            console.log('📈 Fetching GA4 data...');
-            const ga4Response = await fetch(`${this.backendUrl}/api/ga4/metrics?start=${startDateStr}&end=${endDateStr}`);
-            if (!ga4Response.ok) {
-                throw new Error(`GA4 API failed: ${ga4Response.status}`);
-            }
-            const ga4Data = await ga4Response.json();
-            console.log('✅ GA4 data loaded:', ga4Data);
-            
-            // Calculate key metrics from real data
-            const totalSessions = ga4Data.totalSessions || 0;
+            // Calculate key metrics from GSC data only
             const totalImpressions = gscData.reduce((sum, item) => sum + (item.impressions || 0), 0);
             const totalClicks = gscData.reduce((sum, item) => sum + (item.clicks || 0), 0);
             const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
             const avgPosition = gscData.length > 0 ? 
                 gscData.reduce((sum, item) => sum + (item.position || 0), 0) / gscData.length : 0;
             
-            // Calculate additional metrics
-            const bounceRate = ga4Data.bounceRate || 0;
-            const avgSessionDuration = ga4Data.averageSessionDuration || 0;
-            const conversionRate = totalSessions > 0 ? ((ga4Data.totalConversions || 0) / totalSessions) * 100 : 0;
-            
             console.log('📊 Calculated metrics:', {
-                totalSessions,
                 totalImpressions,
                 totalClicks,
                 avgCTR: avgCTR.toFixed(2) + '%',
-                avgPosition: avgPosition.toFixed(1),
-                bounceRate: bounceRate.toFixed(1) + '%',
-                avgSessionDuration: this.formatDuration(avgSessionDuration),
-                conversionRate: conversionRate.toFixed(1) + '%'
+                avgPosition: avgPosition.toFixed(1)
             });
             
             // Update Key Metrics cards with real data
-            document.getElementById('totalSessions').textContent = totalSessions.toLocaleString();
+            document.getElementById('totalClicks').textContent = totalClicks.toLocaleString();
             document.getElementById('searchImpressions').textContent = totalImpressions.toLocaleString();
             document.getElementById('clickThroughRate').textContent = avgCTR.toFixed(2) + '%';
             document.getElementById('avgPosition').textContent = avgPosition.toFixed(1);
             
             // Update change indicators (you can implement trend calculation here)
             this.updateChangeIndicators({
-                sessions: totalSessions,
+                clicks: totalClicks,
                 impressions: totalImpressions,
                 ctr: avgCTR,
                 position: avgPosition
@@ -296,7 +222,6 @@ class AnalyticsDashboard {
             
             // Store current data for signal analysis
             this.currentData.gsc = gscData;
-            this.currentData.ga4 = ga4Data;
             
             console.log('✅ Key metrics updated with real data');
             
@@ -305,7 +230,7 @@ class AnalyticsDashboard {
             this.showNotification('Error loading real data: ' + error.message, 'error');
             
             // Show loading state
-            document.getElementById('totalSessions').textContent = 'Loading...';
+            document.getElementById('totalClicks').textContent = 'Loading...';
             document.getElementById('searchImpressions').textContent = 'Loading...';
             document.getElementById('clickThroughRate').textContent = 'Loading...';
             document.getElementById('avgPosition').textContent = 'Loading...';
@@ -316,7 +241,7 @@ class AnalyticsDashboard {
         // This is where you could implement trend calculation
         // For now, we'll show that data is live
         const changeElements = {
-            sessions: document.getElementById('sessionsChange'),
+            clicks: document.getElementById('clicksChange'),
             impressions: document.getElementById('impressionsChange'),
             ctr: document.getElementById('ctrChange'),
             position: document.getElementById('positionChange')
@@ -346,20 +271,20 @@ class AnalyticsDashboard {
         
             console.log('📊 Loading top performing pages for date range:', { startDateStr, endDateStr, days });
             
-            // Get GA4 pages data
-            const pagesUrl = `${this.backendUrl}/api/ga4/pages?start=${startDateStr}&end=${endDateStr}`;
-            const pagesResponse = await fetch(pagesUrl);
+            // Get GSC pages data
+            const gscUrl = `${this.backendUrl}/api/gsc/top?start=${startDateStr}&end=${endDateStr}&limit=100`;
+            const gscResponse = await fetch(gscUrl);
             
-            if (!pagesResponse.ok) {
-                throw new Error(`GA4 pages request failed: ${pagesResponse.status}`);
+            if (!gscResponse.ok) {
+                throw new Error(`GSC pages request failed: ${gscResponse.status}`);
             }
             
-            const pagesData = await pagesResponse.json();
-            console.log('📈 GA4 Pages data received:', pagesData.length, 'pages');
+            const pagesData = await gscResponse.json();
+            console.log('📈 GSC Pages data received:', pagesData.length, 'pages');
             
-            // Sort by sessions and take top 6
+            // Sort by clicks and take top 6
             const topPages = pagesData
-                .sort((a, b) => (b.sessions || 0) - (a.sessions || 0))
+                .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
                 .slice(0, 6);
             
             console.log('🏆 Top 6 pages selected:', topPages.length);
@@ -400,10 +325,10 @@ class AnalyticsDashboard {
         const pageUrl = page.page || 'Unknown URL';
         
         // Format metrics
-        const sessions = page.sessions || 0;
-        const bounceRate = page.bounceRate || 0;
-        const avgSessionDuration = page.averageSessionDuration || 0;
-        const pageViews = page.pageViews || 0;
+        const clicks = page.clicks || 0;
+        const impressions = page.impressions || 0;
+        const ctr = page.ctr || 0;
+        const position = page.position || 0;
         
         div.innerHTML = `
             <div class="page-rank">${rank}</div>
@@ -411,20 +336,20 @@ class AnalyticsDashboard {
             <div class="page-url">${pageUrl}</div>
             <div class="page-metrics">
                 <div class="page-metric">
-                    <div class="page-metric-label">Sessions</div>
-                    <div class="page-metric-value sessions">${sessions.toLocaleString()}</div>
+                    <div class="page-metric-label">Clicks</div>
+                    <div class="page-metric-value clicks">${clicks.toLocaleString()}</div>
                 </div>
                 <div class="page-metric">
-                    <div class="page-metric-label">Bounce Rate</div>
-                    <div class="page-metric-value bounce-rate">${bounceRate.toFixed(1)}%</div>
+                    <div class="page-metric-label">Impressions</div>
+                    <div class="page-metric-value impressions">${impressions.toLocaleString()}</div>
                 </div>
                 <div class="page-metric">
-                    <div class="page-metric-label">Avg. Duration</div>
-                    <div class="page-metric-value avg-session-duration">${this.formatDuration(avgSessionDuration)}</div>
+                    <div class="page-metric-label">CTR</div>
+                    <div class="page-metric-value ctr">${(ctr * 100).toFixed(2)}%</div>
                 </div>
                 <div class="page-metric">
-                    <div class="page-metric-label">Page Views</div>
-                    <div class="page-metric-value page-views">${pageViews.toLocaleString()}</div>
+                    <div class="page-metric-label">Position</div>
+                    <div class="page-metric-value position">${position.toFixed(1)}</div>
                 </div>
             </div>
         `;
@@ -775,6 +700,12 @@ class AnalyticsDashboard {
                     case 'intent-mismatch':
                         // Pages with low CTR despite good position (potential intent mismatch)
                         return page.position <= 5 && page.ctr < 0.03 && page.impressions > 100;
+                    case 'position-11-20':
+                        // Pages ranking between positions 11-20
+                        return page.position >= 11 && page.position <= 20 && page.impressions > 100;
+                    case 'high-impressions-queries':
+                        // Pages with 500+ impressions
+                        return page.impressions >= 500;
                     default:
                         return false;
                 }
@@ -803,6 +734,14 @@ class AnalyticsDashboard {
                     case 'intent-mismatch':
                         description = `Good position (${page.position.toFixed(1)}) but low CTR (${(page.ctr * 100).toFixed(2)}%) suggests content-intent mismatch`;
                         priority = page.impressions > 1000 ? 'high' : page.impressions > 500 ? 'medium' : 'low';
+                        break;
+                    case 'position-11-20':
+                        description = `Page ranking at position ${page.position.toFixed(1)} with ${page.impressions.toLocaleString()} impressions - opportunity to push into top 10`;
+                        priority = page.impressions > 500 ? 'high' : page.impressions > 200 ? 'medium' : 'low';
+                        break;
+                    case 'high-impressions-queries':
+                        description = `Page with ${page.impressions.toLocaleString()} impressions - high visibility optimization opportunity`;
+                        priority = page.impressions > 2000 ? 'high' : page.impressions > 1000 ? 'medium' : 'low';
                         break;
                 }
                 
@@ -894,17 +833,22 @@ class AnalyticsDashboard {
     }
 
     async updateSignalTypeStatuses() {
-        const signalTypes = ['ctr-drop', 'keywords-opportunity', 'position-drop', 'intent-mismatch'];
+        const signalTypes = ['ctr-drop', 'keywords-opportunity', 'position-drop', 'intent-mismatch', 'high-impressions-queries', 'position-11-20'];
         
         for (const signalType of signalTypes) {
             const indicator = document.getElementById(`${signalType}-status`);
             if (indicator) {
                 try {
-                    // Get pages for this signal type
-                    const pages = await this.getPagesForSignalType(signalType);
+                    let count = 0;
+                    let label = 'Queries';
                     
-                    if (pages.length > 0) {
-                        indicator.textContent = `${pages.length} Pages`;
+                    // Get pages for all signal types
+                    const pages = await this.getPagesForSignalType(signalType);
+                    count = pages.length;
+                    label = 'Pages';
+                    
+                    if (count > 0) {
+                        indicator.textContent = `${count} ${label}`;
                         indicator.className = 'status-indicator active';
                     } else {
                         indicator.textContent = 'None';
@@ -918,95 +862,9 @@ class AnalyticsDashboard {
             }
         }
     }
+    
 
-    async updateGA4Data(dateRange) {
-        try {
-        const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - days);
-        
-        const startDateStr = startDate.toISOString().split('T')[0];
-        const endDateStr = endDate.toISOString().split('T')[0];
-        
-            console.log('📊 Fetching GA4 data for date range:', { startDateStr, endDateStr });
-            
-            // Get GA4 pages data
-            const pagesUrl = `${this.backendUrl}/api/ga4/pages?start=${startDateStr}&end=${endDateStr}`;
-            const pagesResponse = await fetch(pagesUrl);
-            
-            if (!pagesResponse.ok) {
-                throw new Error(`GA4 pages request failed: ${pagesResponse.status}`);
-            }
-            
-            const pagesData = await pagesResponse.json();
-            console.log('📈 GA4 Pages data received:', pagesData.length, 'pages');
-            
-            // Get GA4 metrics
-            const metricsUrl = `${this.backendUrl}/api/ga4/metrics?start=${startDateStr}&end=${endDateStr}`;
-            const metricsResponse = await fetch(metricsUrl);
-            
-            if (!metricsResponse.ok) {
-                throw new Error(`GA4 metrics request failed: ${metricsResponse.status}`);
-            }
-            
-            const metrics = await metricsResponse.json();
-            console.log('📊 GA4 Metrics data received:', metrics);
-            
-            // Process the data for charts using real metrics
-            const labels = [];
-            const sessions = [];
-            const engagedSessions = [];
-            
-            // Create realistic daily data based on actual metrics
-            const totalSessions = metrics.totalSessions || 0;
-            const totalEngagedSessions = metrics.totalEngagedSessions || 0;
-            const dailySessions = Math.floor(totalSessions / days);
-            const dailyEngagedSessions = Math.floor(totalEngagedSessions / days);
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                
-                // Use actual data with realistic variation
-                const variation = 0.8 + Math.random() * 0.4; // ±20% variation
-                sessions.push(Math.floor(dailySessions * variation));
-                engagedSessions.push(Math.floor(dailyEngagedSessions * variation));
-            }
-            
-            const data = {
-                labels,
-                sessions,
-                engagedSessions,
-                totalSessions: metrics.totalSessions || 0,
-                bounceRate: metrics.bounceRate || 0,
-                sessionDuration: this.formatDuration(metrics.averageSessionDuration || 0),
-                conversionRate: ((metrics.totalConversions || 0) / (metrics.totalSessions || 1) * 100).toFixed(1)
-            };
-            
-            this.updateGA4Charts(data);
-            this.updateGA4Metrics(data);
-            
-        } catch (error) {
-            console.error('Error updating GA4 data:', error);
-            this.showNotification('Error loading GA4 data: ' + error.message, 'error');
-        }
-    }
-
-    updateGA4Charts(data) {
-        this.ga4Chart.data.labels = data.labels;
-        this.ga4Chart.data.datasets[0].data = data.sessions;
-        this.ga4Chart.data.datasets[1].data = data.engagedSessions;
-        this.ga4Chart.update();
-    }
-
-    updateGA4Metrics(data) {
-        document.getElementById('ga4Sessions').textContent = data.totalSessions.toLocaleString();
-        document.getElementById('ga4BounceRate').textContent = data.bounceRate.toFixed(1) + '%';
-        document.getElementById('ga4SessionDuration').textContent = data.sessionDuration;
-        document.getElementById('ga4ConversionRate').textContent = data.conversionRate + '%';
-    }
+    // GA4 update functions removed - GA4 section is hidden
 
     async updateGSCData(dateRange) {
         try {
@@ -1215,68 +1073,13 @@ class AnalyticsDashboard {
     }
 
     analyzeEngagementIssues() {
-        const signals = [];
-        
-        // Analyze GA4 data for engagement issues
-        if (this.currentData.ga4) {
-            const bounceRate = this.currentData.ga4.bounceRate || 0;
-            const avgSessionDuration = this.currentData.ga4.averageSessionDuration || 0;
-            
-            if (bounceRate > 0.5) { // > 50% bounce rate
-                signals.push({
-                    type: 'Engagement Issue',
-                    title: 'High bounce rate detected',
-                    description: `${(bounceRate * 100).toFixed(1)}% bounce rate indicates content not satisfying search intent`,
-                    priority: bounceRate > 0.7 ? 'high' : 'medium',
-                    metrics: {
-                        bounceRate: `${(bounceRate * 100).toFixed(1)}%`,
-                        avgDuration: this.formatDuration(avgSessionDuration)
-                    },
-                    action: 'Improve content quality and user experience'
-                });
-            }
-            
-            if (avgSessionDuration < 50) { // < 50 seconds
-                signals.push({
-                    type: 'Engagement Issue',
-                    title: 'Low session duration',
-                    description: `Average session duration of ${this.formatDuration(avgSessionDuration)} suggests content not engaging`,
-                    priority: avgSessionDuration < 30 ? 'high' : 'medium',
-                    metrics: {
-                        avgDuration: this.formatDuration(avgSessionDuration),
-                        bounceRate: `${(bounceRate * 100).toFixed(1)}%`
-                    },
-                    action: 'Enhance content depth and add interactive elements'
-                });
-            }
-        }
-        
-        return signals;
+        // GA4 engagement analysis removed - using GSC data only
+        return [];
     }
 
     analyzeConversionDrops() {
-        const signals = [];
-        
-        if (this.currentData.ga4) {
-            const conversionRate = (this.currentData.ga4.totalConversions || 0) / (this.currentData.ga4.totalSessions || 1);
-            
-            if (conversionRate < 0.02) { // < 2% conversion rate
-                signals.push({
-                    type: 'Conversion Issue',
-                    title: 'Low conversion rate',
-                    description: `${(conversionRate * 100).toFixed(2)}% conversion rate suggests CTA or offer fatigue`,
-                    priority: conversionRate < 0.01 ? 'high' : 'medium',
-                    metrics: {
-                        conversionRate: `${(conversionRate * 100).toFixed(2)}%`,
-                        totalConversions: this.currentData.ga4.totalConversions || 0,
-                        totalSessions: this.currentData.ga4.totalSessions || 0
-                    },
-                    action: 'A/B test CTAs and offers, improve user journey'
-                });
-            }
-        }
-        
-        return signals;
+        // GA4 conversion analysis removed - using GSC data only
+        return [];
     }
 
     displaySignals(signals) {
@@ -1577,7 +1380,6 @@ class AnalyticsDashboard {
         try {
             await Promise.all([
                 this.updateOverviewMetrics(),
-                this.updateGA4Data(document.getElementById('ga4DateRange').value),
                 this.updateGSCData(document.getElementById('gscDateRange').value),
                 this.loadTopPages(document.getElementById('topPagesDateRange').value)
             ]);

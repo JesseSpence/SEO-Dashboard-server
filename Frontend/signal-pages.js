@@ -95,6 +95,12 @@ class SignalPagesDashboard {
                     case 'intent-mismatch':
                         // Pages with low CTR despite good position (potential intent mismatch)
                         return page.position <= 5 && page.ctr < 0.03 && page.impressions > 100;
+                    case 'position-11-20':
+                        // Pages ranking between positions 11-20
+                        return page.position >= 11 && page.position <= 20 && page.impressions > 100;
+                    case 'high-impressions-queries':
+                        // Pages with 500+ impressions
+                        return page.impressions >= 500;
                     default:
                         return false;
                 }
@@ -124,6 +130,14 @@ class SignalPagesDashboard {
                         description = `Good position (${page.position.toFixed(1)}) but low CTR (${(page.ctr * 100).toFixed(2)}%) suggests content-intent mismatch`;
                         priority = page.impressions > 1000 ? 'high' : page.impressions > 500 ? 'medium' : 'low';
                         break;
+                    case 'position-11-20':
+                        description = `Page ranking at position ${page.position.toFixed(1)} with ${page.impressions.toLocaleString()} impressions - opportunity to push into top 10`;
+                        priority = page.impressions > 500 ? 'high' : page.impressions > 200 ? 'medium' : 'low';
+                        break;
+                    case 'high-impressions-queries':
+                        description = `Page with ${page.impressions.toLocaleString()} impressions - high visibility optimization opportunity`;
+                        priority = page.impressions > 2000 ? 'high' : page.impressions > 1000 ? 'medium' : 'low';
+                        break;
                 }
                 
                 return {
@@ -151,7 +165,9 @@ class SignalPagesDashboard {
             'ctr-drop': 'CTR Issues',
             'keywords-opportunity': 'Keyword Opportunities',
             'position-drop': 'Position Drops',
-            'intent-mismatch': 'Intent Mismatches'
+            'intent-mismatch': 'Intent Mismatches',
+            'high-impressions-queries': 'High Impressions Pages',
+            'position-11-20': 'Position 11-20 Pages'
         };
 
         document.getElementById('signalTitle').textContent = signalTypeNames[this.signalType] || 'Signal Pages';
@@ -206,15 +222,26 @@ class SignalPagesDashboard {
                 </div>
                 
                 <div class="page-actions">
-                    <button class="action-btn primary" onclick="window.open('${page.url}', '_blank')">
-                        <i class="fas fa-external-link-alt"></i> Visit Page
-                    </button>
-                    <button class="action-btn secondary" onclick="signalPages.copyUrl('${page.url}')">
-                        <i class="fas fa-copy"></i> Copy URL
-                    </button>
-                    <button class="action-btn secondary" onclick="signalPages.viewQueries('${page.url}')">
-                        <i class="fas fa-search"></i> View Queries
-                    </button>
+                    ${page.isQuery ? `
+                        <button class="action-btn primary" onclick="signalPages.copyQuery('${page.queryText}')">
+                            <i class="fas fa-copy"></i> Copy Query
+                        </button>
+                        ${page.url && page.url !== '#' ? `
+                            <button class="action-btn secondary" onclick="window.open('${page.url}', '_blank')">
+                                <i class="fas fa-external-link-alt"></i> View Source Page
+                            </button>
+                        ` : ''}
+                    ` : `
+                        <button class="action-btn primary" onclick="window.open('${page.url}', '_blank')">
+                            <i class="fas fa-external-link-alt"></i> Visit Page
+                        </button>
+                        <button class="action-btn secondary" onclick="signalPages.copyUrl('${page.url}')">
+                            <i class="fas fa-copy"></i> Copy URL
+                        </button>
+                        <button class="action-btn secondary" onclick="signalPages.viewQueries('${page.url}')">
+                            <i class="fas fa-search"></i> View Queries
+                        </button>
+                    `}
                 </div>
             </div>
         `).join('');
@@ -238,6 +265,15 @@ class SignalPagesDashboard {
         }).catch(err => {
             console.error('Failed to copy URL:', err);
             this.showNotification('Failed to copy URL', 'error');
+        });
+    }
+
+    copyQuery(query) {
+        navigator.clipboard.writeText(query).then(() => {
+            this.showNotification('Query copied to clipboard!', 'success');
+        }).catch(err => {
+            console.error('Failed to copy query:', err);
+            this.showNotification('Failed to copy query', 'error');
         });
     }
 

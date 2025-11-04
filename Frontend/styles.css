@@ -2052,3 +2052,400 @@ body {
     font-size: 0.9rem;
 }
 
+/* Hidden Sections */
+.hidden-section {
+    display: none !important;
+}
+
+/* DR Tracker Styles */
+.add-company-section {
+    background: #2a2a2a;
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid #3a3a3a;
+}
+
+.add-company-form {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group label {
+    display: block;
+    color: #cccccc;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 15px;
+    background: #1a1a1a;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.ranking-board-section {
+    background: #2a2a2a;
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid #3a3a3a;
+}
+
+.ranking-info-box {
+    background: #1a1a1a;
+    border-left: 4px solid #3498db;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #cccccc;
+}
+
+.ranking-info-box i {
+    color: #3498db;
+    margin-right: 8px;
+}
+
+.ranking-list-container {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ranking-item {
+    background: #1a1a1a;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    padding: 15px 20px;
+    cursor: move;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.ranking-item:hover {
+    background: #222222;
+    border-color: #4a4a4a;
+    transform: translateX(5px);
+}
+
+.ranking-item.dragging {
+    opacity: 0.5;
+    background: #2a2a2a;
+}
+
+.ranking-item.drag-over {
+    border-color: #ff6b35;
+    background: #2a2a2a;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+}
+
+.ranking-item-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.ranking-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ff6b35;
+    min-width: 40px;
+    text-align: center;
+}
+
+.ranking-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ranking-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 5px;
+}
+
+.funding-agent-badge {
+    background: #ff6b35;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.ranking-url {
+    font-size: 0.9rem;
+    color: #aaaaaa;
+    word-break: break-all;
+}
+
+.ranking-dr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #2a2a2a;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid #3a3a3a;
+}
+
+.dr-label {
+    font-size: 0.85rem;
+    color: #aaaaaa;
+    font-weight: 500;
+}
+
+.dr-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ff6b35;
+}
+
+.ranking-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid #3a3a3a;
+    color: #cccccc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn-icon:hover:not(:disabled) {
+    background: #3a3a3a;
+    border-color: #4a4a4a;
+    color: #ffffff;
+}
+
+.btn-icon:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-icon i {
+    margin: 0;
+}
+
+.no-companies {
+    text-align: center;
+    padding: 40px;
+    color: #aaaaaa;
+    font-style: italic;
+}
+
+/* Scrollbar styling for ranking list */
+.ranking-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ranking-list-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+}
+
+.ranking-list-container::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 4px;
+}
+
+.ranking-list-container::-webkit-scrollbar-thumb:hover {
+    background: #4a4a4a;
+}
+
+/* DR Scale Styles */
+.dr-scale-container {
+    background: #1a1a1a;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.dr-scale-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 5px;
+}
+
+.dr-scale-label {
+    color: #aaaaaa;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.dr-scale {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 10px 0;
+    background: #2a2a2a;
+    border-radius: 8px;
+    min-height: 60px;
+}
+
+.dr-scale-dot {
+    flex: 1;
+    height: 8px;
+    width: 4px;
+    background: #3a3a3a;
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    margin: 0 1px;
+}
+
+.dr-scale-dot:hover {
+    background: #4a4a4a;
+    height: 12px;
+}
+
+.dr-scale-dot-major {
+    height: 16px;
+    width: 6px;
+    background: #5a5a5a;
+    border-radius: 3px;
+}
+
+.dr-scale-dot-major:hover {
+    height: 20px;
+    background: #6a6a6a;
+}
+
+.dr-scale-dot-hover {
+    background: #ff6b35 !important;
+    height: 20px !important;
+    width: 8px !important;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+    z-index: 10;
+}
+
+.dr-scale-dot-major.dr-scale-dot-hover {
+    height: 24px !important;
+}
+
+.company-position-marker {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 12px solid #3498db;
+    z-index: 5;
+}
+
+.company-position-marker.funding-agent-marker {
+    border-top-color: #ff6b35;
+    filter: drop-shadow(0 0 4px rgba(255, 107, 53, 0.6));
+}
+
+.company-position-marker::after {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -3px;
+    width: 6px;
+    height: 6px;
+    background: inherit;
+    border-radius: 50%;
+    border-top-color: transparent;
+}
+
+.dr-scale-dot:hover .company-position-marker {
+    border-top-color: #ff6b35;
+    transform: translateX(-50%) scale(1.2);
+}
+
+.dr-tooltip {
+    position: absolute;
+    background: #ff6b35;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dr-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #ff6b35;
+}
+
+/* Ensure scale dots are always visible and interactive */
+.dr-scale {
+    position: relative;
+}
+
+.dr-scale-dot {
+    position: relative;
+    z-index: 1;
+}
+
+.ranking-item.dragging {
+    opacity: 0.6;
+    cursor: grabbing !important;
+}
+
+.ranking-item.dragging .ranking-item-content {
+    transform: scale(0.95);
+}
+
+body.dragging {
+    cursor: grabbing !important;
+    user-select: none;
+}
+
