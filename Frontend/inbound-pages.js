@@ -457,6 +457,21 @@ class InboundPagesDashboard {
 
     formatArrayForExpanded(arr) {
         if (!arr || arr.length === 0) return 'None';
+        
+        // Handle complimentary content (objects with url and type)
+        if (arr.length > 0 && typeof arr[0] === 'object' && ('url' in arr[0] || 'type' in arr[0]) && !('text' in arr[0])) {
+            return arr.map(item => {
+                const url = item.url || '';
+                const type = item.type || '';
+                if (url && type) {
+                    return `<strong>${type}:</strong> <span style="color: #4a9eff;">${url}</span>`;
+                } else if (type) {
+                    return type;
+                }
+                return '';
+            }).filter(Boolean).join('<br>') || 'None';
+        }
+        
         if (typeof arr[0] === 'object' && 'text' in arr[0]) {
             return arr.map(a => a.text || a).join(', ');
         }
@@ -494,6 +509,30 @@ class InboundPagesDashboard {
 
     formatArray(arr) {
         if (!arr || arr.length === 0) return '';
+        
+        // Special handling for complimentary content (objects with url and type)
+        const isComplimentaryArray = arr.length > 0 && 
+            typeof arr[0] === 'object' && 
+            ('url' in arr[0] || 'type' in arr[0]) &&
+            !('text' in arr[0]) && !('live' in arr[0]);
+        
+        if (isComplimentaryArray) {
+            const displayItems = arr.slice(0, 3).map(item => {
+                const url = item.url || '';
+                const type = item.type || '';
+                if (url && type) {
+                    return `<span class="complimentary-display">${type}: <span class="page-url">${url}</span></span>`;
+                } else if (type) {
+                    return `<span class="complimentary-display">${type}</span>`;
+                }
+                return '';
+            }).filter(Boolean).join(', ');
+            
+            if (arr.length <= 3) {
+                return displayItems || '<span class="empty">Click to add</span>';
+            }
+            return displayItems + ` (+${arr.length - 3} more)`;
+        }
         
         // Handle anchor objects with live status
         const isAnchorArray = arr.length > 0 && typeof arr[0] === 'object' && 'text' in arr[0];
@@ -548,7 +587,63 @@ class InboundPagesDashboard {
         // Generate modal content based on column type
         modalBody.innerHTML = this.generateModalContent(column, this.currentModal.data);
 
+        // Attach event listeners for complimentary content if needed
+        if (column === 'complimentaryContent') {
+            this.attachComplimentaryEventListeners();
+        }
+
         modal.classList.add('active');
+    }
+
+    attachComplimentaryEventListeners() {
+        const addBtn = document.getElementById('addComplimentaryBtn');
+        if (addBtn) {
+            // Remove any existing listeners
+            const newBtn = addBtn.cloneNode(true);
+            addBtn.parentNode.replaceChild(newBtn, addBtn);
+            
+            // Attach new listener
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const urlInput = document.getElementById('newComplimentaryUrl');
+                const typeSelect = document.getElementById('newComplimentaryType');
+                const tagValues = document.getElementById('tagValues');
+                
+                if (!urlInput || !typeSelect || !tagValues) {
+                    console.error('Missing elements for complimentary content');
+                    return;
+                }
+                
+                const url = urlInput.value.trim();
+                const type = typeSelect.value.trim();
+                
+                if (!type) {
+                    alert('Please select a content type');
+                    return;
+                }
+                
+                try {
+                    const items = JSON.parse(tagValues.textContent);
+                    items.push({ url: url, type: type });
+                    tagValues.textContent = JSON.stringify(items);
+                    
+                    // Re-render the list
+                    const modalBody = document.getElementById('modalBody');
+                    modalBody.innerHTML = this.generateComplimentaryContentField(items);
+                    
+                    // Re-attach listeners after re-render
+                    this.attachComplimentaryEventListeners();
+                    
+                    urlInput.value = '';
+                    typeSelect.value = '';
+                } catch (error) {
+                    console.error('Error adding complimentary content:', error);
+                    alert('Error adding content. Please try again.');
+                }
+            });
+        }
     }
 
     generateModalContent(column, data) {
@@ -575,7 +670,9 @@ class InboundPagesDashboard {
                 return this.generateAnchorsField(data.anchors || []);
             
             case 'complimentaryContent':
-                return this.generateComplimentaryContentField(data.complimentaryContent || []);
+                // Ensure we have an array
+                const compContent = Array.isArray(data.complimentaryContent) ? data.complimentaryContent : [];
+                return this.generateComplimentaryContentField(compContent);
             
             case 'customCTA':
             case 'updatesAddContent':
@@ -667,31 +764,56 @@ class InboundPagesDashboard {
     }
 
     generateComplimentaryContentField(values) {
+        // Normalize values to object format {url, type}
+        const normalized = values.map(v => {
+            if (typeof v === 'string') {
+                // Legacy format - just type, no URL
+                return { url: '', type: v };
+            }
+            return { url: v.url || '', type: v.type || v };
+        });
+
         const options = ['Data Blog', 'What is', 'Who is', 'How to', 'Pro and Cons'];
         
-        const tagsHtml = values.map((val, idx) => `
-            <span class="tag">
-                ${val}
-                <span class="remove-tag" data-index="${idx}">×</span>
-            </span>
+        const itemsHtml = normalized.map((item, idx) => `
+            <div class="complimentary-item" data-index="${idx}" style="margin-bottom: 12px; padding: 12px; background: rgba(26, 26, 26, 0.5); border-radius: 8px; border-left: 3px solid #ff6b35;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" class="complimentary-url" data-index="${idx}" 
+                        placeholder="Page URL (e.g., /post/example)" 
+                        value="${item.url || ''}" 
+                        style="flex: 2; min-width: 200px; padding: 10px; background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: inherit; width: 100%; box-sizing: border-box;">
+                    <select class="complimentary-type" data-index="${idx}" 
+                        style="flex: 1; min-width: 150px; padding: 10px; background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: inherit; cursor: pointer;">
+                        <option value="">Select type</option>
+                        ${options.map(opt => `<option value="${opt}" ${item.type === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                    </select>
+                    <button class="remove-tag" data-index="${idx}" style="flex-shrink: 0; background: #ff6b35; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 1.2rem; line-height: 1;">×</button>
+                </div>
+            </div>
         `).join('');
 
         return `
             <div class="cell-modal-field">
                 <label>Complimentary Content</label>
-                <p style="color: #999; font-size: 0.85rem; margin-bottom: 10px;">Select content types: Data Blog, What is, Who is, How to, Pro and Cons</p>
-                <div class="tag-list" id="tagList">
-                    ${tagsHtml}
+                <p style="color: #999; font-size: 0.85rem; margin-bottom: 15px;">Add page URLs with their content types (Data Blog, What is, Who is, How to, Pro and Cons)</p>
+                <div id="complimentaryList">
+                    ${itemsHtml}
                 </div>
-                <div class="tag-input">
-                    <select id="newTagInput" style="width: auto; display: inline-block; margin-right: 8px;">
-                        <option value="">Select content type</option>
-                        ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-                    </select>
-                    <button class="add-tag-btn" id="addTagBtn">Add</button>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #3a3a3a;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="newComplimentaryUrl" 
+                            placeholder="Page URL (e.g., /post/example)" 
+                            style="flex: 2; min-width: 200px; padding: 12px; background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 8px; color: #fff; font-size: 0.9rem; font-family: inherit; width: 100%; box-sizing: border-box;">
+                        <select id="newComplimentaryType" 
+                            style="flex: 1; min-width: 150px; padding: 12px; background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 8px; color: #fff; font-size: 0.9rem; font-family: inherit; cursor: pointer;">
+                            <option value="">Select type</option>
+                            ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                        <button class="add-tag-btn" id="addComplimentaryBtn" style="flex-shrink: 0;">Add</button>
+                    </div>
                 </div>
             </div>
-            <div id="tagValues" style="display: none;">${JSON.stringify(values)}</div>
+            <div id="tagValues" style="display: none;">${JSON.stringify(normalized)}</div>
         `;
     }
 
@@ -790,9 +912,53 @@ function renderTags(tagList, values) {
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     const dashboard = new InboundPagesDashboard();
+    window.inboundDashboard = dashboard; // Store globally for event handlers
     
     // Setup tag management for array fields using event delegation
     document.addEventListener('click', (e) => {
+        if (e.target.id === 'addComplimentaryBtn' || e.target.closest('#addComplimentaryBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const urlInput = document.getElementById('newComplimentaryUrl');
+            const typeSelect = document.getElementById('newComplimentaryType');
+            const tagValues = document.getElementById('tagValues');
+            const list = document.getElementById('complimentaryList');
+            
+            if (!urlInput || !typeSelect || !tagValues || !list) {
+                console.error('Missing elements:', { urlInput, typeSelect, tagValues, list });
+                return;
+            }
+            
+            const url = urlInput.value.trim();
+            const type = typeSelect.value.trim();
+            
+            if (!type) {
+                alert('Please select a content type');
+                return;
+            }
+            
+            try {
+                const items = JSON.parse(tagValues.textContent);
+                items.push({ url: url, type: type });
+                tagValues.textContent = JSON.stringify(items);
+                
+                // Re-render the list
+                const pageIndex = dashboard.currentModal.pageIndex;
+                if (pageIndex !== null) {
+                    const modalBody = document.getElementById('modalBody');
+                    modalBody.innerHTML = dashboard.generateComplimentaryContentField(items);
+                }
+                
+                urlInput.value = '';
+                typeSelect.value = '';
+            } catch (error) {
+                console.error('Error adding complimentary content:', error);
+                alert('Error adding content. Please try again.');
+            }
+            return;
+        }
+        
         if (e.target.id === 'addTagBtn') {
             const input = document.getElementById('newTagInput');
             const tagList = document.getElementById('tagList');
@@ -849,12 +1015,46 @@ document.addEventListener('DOMContentLoaded', () => {
             const idx = parseInt(e.target.dataset.index);
             const tagValues = document.getElementById('tagValues');
             const tagList = document.getElementById('tagList');
+            const complimentaryList = document.getElementById('complimentaryList');
+            
+            if (complimentaryList) {
+                // Handle complimentary content removal
+                if (!tagValues) return;
+                const items = JSON.parse(tagValues.textContent);
+                items.splice(idx, 1);
+                tagValues.textContent = JSON.stringify(items);
+                
+                // Re-render the list
+                const pageIndex = dashboard.currentModal.pageIndex;
+                if (pageIndex !== null) {
+                    const modalBody = document.getElementById('modalBody');
+                    modalBody.innerHTML = dashboard.generateComplimentaryContentField(items);
+                }
+                return;
+            }
             
             if (!tagValues || !tagList) return;
             
             const values = JSON.parse(tagValues.textContent);
             values.splice(idx, 1);
             renderTags(tagList, values);
+        }
+    });
+
+    // Handle updating existing complimentary items
+    document.addEventListener('input', (e) => {
+        if (e.target.classList.contains('complimentary-url') || e.target.classList.contains('complimentary-type')) {
+            const idx = parseInt(e.target.dataset.index);
+            const tagValues = document.getElementById('tagValues');
+            if (!tagValues) return;
+            
+            const items = JSON.parse(tagValues.textContent);
+            if (e.target.classList.contains('complimentary-url')) {
+                items[idx].url = e.target.value;
+            } else {
+                items[idx].type = e.target.value;
+            }
+            tagValues.textContent = JSON.stringify(items);
         }
     });
 
