@@ -1,9 +1,52 @@
 class QueriesDashboard {
     constructor() {
-        this.backendUrl = 'https://api.themetastack.com';
+        this.backendUrl = window.MOCK_CONFIG?.backendUrl || 'https://api.themetastack.com';
+        this.mockMode = window.MOCK_CONFIG?.enabled || false;
         this.pageUrl = this.getPageUrlFromUrl();
         this.queries = [];
+        
+        if (this.mockMode) {
+            console.log('🎭 Mock mode enabled - using mock data instead of API calls');
+        }
+        
         this.init();
+    }
+
+    // Helper method to fetch data (real API or mock)
+    async fetchData(endpoint, params = {}) {
+        if (this.mockMode) {
+            return this.fetchMockData(endpoint, params);
+        } else {
+            return this.fetchRealData(endpoint, params);
+        }
+    }
+
+    // Fetch real API data
+    async fetchRealData(endpoint, params = {}) {
+        const queryString = new URLSearchParams(params).toString();
+        const url = `${this.backendUrl}${endpoint}${queryString ? '?' + queryString : ''}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+        
+        return await response.json();
+    }
+
+    // Fetch mock data
+    async fetchMockData(endpoint, params = {}) {
+        if (!window.mockDataGenerator) {
+            throw new Error('Mock data generator not loaded');
+        }
+
+        const generator = window.mockDataGenerator;
+
+        if (endpoint === '/api/gsc/queries') {
+            return await generator.getGSCQueries(params.page, params.start, params.end, parseInt(params.limit) || 100);
+        } else {
+            throw new Error(`Unknown endpoint: ${endpoint}`);
+        }
     }
 
     init() {
@@ -75,14 +118,14 @@ class QueriesDashboard {
             const startDateStr = startDate.toISOString().split('T')[0];
             const endDateStr = endDate.toISOString().split('T')[0];
             
-            const response = await fetch(`${this.backendUrl}/api/gsc/queries?page=${encodeURIComponent(pageUrl)}&start=${startDateStr}&end=${endDateStr}&limit=100`);
+            const queries = await this.fetchData('/api/gsc/queries', {
+                page: pageUrl,
+                start: startDateStr,
+                end: endDateStr,
+                limit: 100
+            });
             
-            if (!response.ok) {
-                throw new Error('GSC queries request failed');
-            }
-            
-            const queries = await response.json();
-            console.log('📊 GSC queries received:', queries);
+            console.log(this.mockMode ? '🎭 Mock GSC queries received:' : '📊 GSC queries received:', queries);
             
             return queries;
             

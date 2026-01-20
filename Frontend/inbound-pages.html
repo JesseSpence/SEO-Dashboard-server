@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbound Pages - Analytics Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .inbound-pages-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .inbound-header {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            border-radius: 20px;
+            padding: 25px 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 107, 53, 0.1);
+            border: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .inbound-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .inbound-header h1 {
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .inbound-header h1 i {
+            color: #ff6b35;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .inbound-table-wrapper {
+            background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border: 1px solid #3a3a3a;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .inbound-table-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b35, #4a9eff, #ff6b35);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+
+        .table-scroll-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            max-height: calc(100vh - 250px);
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #ff6b35 #2a2a2a;
+        }
+
+        .table-scroll-container::-webkit-scrollbar {
+            height: 12px;
+            width: 12px;
+        }
+
+        .table-scroll-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 10px;
+        }
+
+        .table-scroll-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #ff6b35, #ff5722);
+            border-radius: 10px;
+            border: 2px solid #1a1a1a;
+        }
+
+        .table-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #ff5722, #ff6b35);
+        }
+
+        .inbound-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 2000px;
+        }
+
+        .inbound-table thead {
+            background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .inbound-table th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 700;
+            color: #ff6b35;
+            border-bottom: 3px solid #ff6b35;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+            user-select: none;
+        }
+
+        .inbound-table th.resizable {
+            position: relative;
+        }
+
+        .resize-handle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            height: 100%;
+            cursor: col-resize;
+            background: transparent;
+            z-index: 10;
+            transition: background 0.2s ease;
+        }
+
+        .resize-handle:hover {
+            background: #ff6b35;
+        }
+
+        .resize-handle.active {
+            background: #ff6b35;
+            width: 3px;
+        }
+
+        .inbound-table th:hover .resize-handle {
+            background: rgba(255, 107, 53, 0.5);
+        }
+
+        .inbound-table th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: #4a9eff;
+            transition: width 0.3s ease;
+        }
+
+        .inbound-table th:hover::after {
+            width: 100%;
+        }
+
+        .inbound-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(58, 58, 58, 0.5);
+            color: #e0e0e0;
+            font-size: 0.85rem;
+            vertical-align: top;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .inbound-table tbody tr {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeIn 0.5s ease-out backwards;
+        }
+
+        .inbound-table tbody tr:nth-child(even) {
+            background: rgba(26, 26, 26, 0.3);
+        }
+
+        .inbound-table tbody tr:nth-child(odd) {
+            background: rgba(42, 42, 42, 0.3);
+        }
+
+        .inbound-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(255, 107, 53, 0.1) 0%, rgba(74, 158, 255, 0.1) 100%);
+            transform: translateX(5px);
+            box-shadow: -5px 0 15px rgba(255, 107, 53, 0.2);
+        }
+
+        .inbound-table tbody tr.expanded {
+            background: rgba(255, 107, 53, 0.15);
+        }
+
+        .inbound-table tbody tr.expanded td {
+            border-bottom: 2px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .cell-content {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            padding: 10px 12px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .cell-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(74, 158, 255, 0.1));
+            opacity: 0;
+            border-radius: 8px;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell-content:hover::before {
+            opacity: 1;
+        }
+
+        .cell-content:hover {
+            background: rgba(58, 58, 58, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell-content.expandable {
+            color: #4a9eff;
+            font-weight: 500;
+        }
+
+        .cell-content.expandable::after {
+            content: '→';
+            position: absolute;
+            right: 8px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            color: #ff6b35;
+        }
+
+        .cell-content.expandable:hover::after {
+            opacity: 1;
+            transform: translateX(3px);
+        }
+
+        .cell-content.expandable:hover {
+            background: rgba(74, 158, 255, 0.15);
+            color: #6bb3ff;
+            padding-right: 25px;
+        }
+
+        .cell-content.empty {
+            color: #666;
+            font-style: italic;
+        }
+
+        .cell-content.empty:hover {
+            color: #999;
+        }
+
+        .page-url {
+            color: #4a9eff;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+        .page-url:hover {
+            color: #6bb3ff;
+            background: rgba(74, 158, 255, 0.1);
+            transform: translateX(3px);
+        }
+
+        .inbound-table td:first-child {
+            white-space: nowrap;
+        }
+
+        .inbound-table td:first-child .page-url {
+            max-width: none;
+        }
+
+        .row-expand-btn {
+            background: transparent;
+            border: none;
+            color: #ff6b35;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .row-expand-btn:hover {
+            background: rgba(255, 107, 53, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .row-expand-btn.expanded {
+            transform: rotate(180deg);
+        }
+
+        .expanded-row-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(26, 26, 26, 0.5);
+        }
+
+        .expanded-row-content.active {
+            max-height: 500px;
+            padding: 20px;
+            border-top: 2px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .expanded-cell-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .expanded-cell-item {
+            background: rgba(42, 42, 42, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #ff6b35;
+            transition: all 0.3s ease;
+        }
+
+        .expanded-cell-item:hover {
+            background: rgba(58, 58, 58, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .expanded-cell-item h4 {
+            color: #ff6b35;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .expanded-cell-item p {
+            color: #e0e0e0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* Modal Styles */
+        .cell-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 1;
+        }
+
+        .cell-modal-content {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 107, 53, 0.2);
+            border: 1px solid #3a3a3a;
+            position: relative;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+
+        .cell-modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b35, #4a9eff, #ff6b35);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .cell-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(58, 58, 58, 0.5);
+            position: relative;
+        }
+
+        .cell-modal-header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, #ff6b35, transparent);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .cell-modal-header h2 {
+            color: #ff6b35;
+            font-size: 1.6rem;
+            margin: 0;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);
+        }
+
+        .cell-modal-close {
+            background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
+            border: 2px solid #4a4a4a;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell-modal-close::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: #ff6b35;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .cell-modal-close:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .cell-modal-close:hover {
+            border-color: #ff6b35;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .cell-modal-close i {
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s ease;
+        }
+
+        .cell-modal-close:hover i {
+            color: #fff;
+        }
+
+        .cell-modal-body {
+            color: #e0e0e0;
+        }
+
+        .cell-modal-field {
+            margin-bottom: 20px;
+        }
+
+        .cell-modal-field label {
+            display: block;
+            color: #ff6b35;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .cell-modal-field textarea,
+        .cell-modal-field input[type="text"],
+        .cell-modal-field input[type="date"],
+        .cell-modal-field select {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .cell-modal-field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .cell-modal-field textarea:focus,
+        .cell-modal-field input:focus,
+        .cell-modal-field select:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .cell-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .tag {
+            background: #3a3a3a;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #fff;
+        }
+
+        .tag-input {
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .add-tag-btn {
+            background: linear-gradient(135deg, #ff6b35, #ff5722);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 8px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .add-tag-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            background: linear-gradient(135deg, #ff5722, #ff6b35);
+        }
+
+        .add-tag-btn:active {
+            transform: translateY(0);
+        }
+
+        .remove-tag {
+            margin-left: 8px;
+            cursor: pointer;
+            color: #ff6b35;
+        }
+
+        .remove-tag:hover {
+            color: #ff5722;
+        }
+
+        /* Anchor Styles */
+        .anchor-item {
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #1a1a1a, #252525);
+            border-radius: 10px;
+            border: 1px solid #3a3a3a;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .anchor-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .anchor-item:hover::before {
+            left: 100%;
+        }
+
+        .anchor-item:hover {
+            transform: translateX(5px);
+            border-color: #ff6b35;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.2);
+        }
+
+        .anchor-toggle {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 10px;
+        }
+
+        .anchor-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #ff6b35;
+        }
+
+        .anchor-text {
+            flex: 1;
+            padding: 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .anchor-text.live {
+            color: #4a9eff;
+            background: linear-gradient(135deg, rgba(74, 158, 255, 0.15), rgba(74, 158, 255, 0.05));
+            border: 1px solid rgba(74, 158, 255, 0.4);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(74, 158, 255, 0.2);
+            position: relative;
+        }
+
+        .anchor-text.live::after {
+            content: '✓';
+            position: absolute;
+            right: 8px;
+            color: #4a9eff;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+
+        .anchor-text.inactive {
+            color: #999;
+            background: rgba(153, 153, 153, 0.05);
+            border: 1px solid rgba(153, 153, 153, 0.2);
+            text-decoration: line-through;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .anchor-text.inactive:hover {
+            opacity: 0.8;
+        }
+
+        .anchors-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .anchor-live {
+            color: #4a9eff;
+            font-weight: 500;
+            background: rgba(74, 158, 255, 0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .anchor-inactive {
+            color: #999;
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="inbound-pages-container">
+        <!-- Header -->
+        <header class="inbound-header">
+            <div>
+                <h1><i class="fas fa-link"></i> Inbound Pages Management</h1>
+                <p style="color: #999; margin-top: 5px;">Track and manage your inbound pages with detailed analytics</p>
+            </div>
+            <div>
+                <a href="index.html" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </header>
+
+        <!-- Table -->
+        <div class="inbound-table-wrapper">
+            <div class="table-scroll-container">
+                <table class="inbound-table" id="inboundTable">
+                <thead>
+                    <tr>
+                        <th style="min-width: 300px;">Page URL</th>
+                        <th>Date</th>
+                        <th>Inbounds</th>
+                        <th>Keywords</th>
+                        <th>Anchors</th>
+                        <th>Custom CTA</th>
+                        <th>Technical SEO Score</th>
+                        <th>Mobile Optimization</th>
+                        <th>Internal Links</th>
+                        <th>External BackLinks</th>
+                        <th>SERP Features Targeted</th>
+                        <th>Complimentary Content</th>
+                        <th>Updates/Add Content</th>
+                        <th>Medium</th>
+                    </tr>
+                </thead>
+                <tbody id="inboundTableBody">
+                    <!-- Table rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cell Modal -->
+    <div class="cell-modal" id="cellModal">
+        <div class="cell-modal-content">
+            <div class="cell-modal-header">
+                <h2 id="modalTitle">Edit Cell</h2>
+                <button class="cell-modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="cell-modal-body" id="modalBody">
+                <!-- Modal content will be populated by JavaScript -->
+            </div>
+            <div class="cell-modal-actions">
+                <button class="btn btn-secondary" id="cancelModal">Cancel</button>
+                <button class="btn btn-primary" id="saveModal">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="mock-config.js"></script>
+    <script src="mock-data.js"></script>
+    <script src="inbound-pages.js"></script>
+</body>
+</html>
+

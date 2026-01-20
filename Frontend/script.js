@@ -2,11 +2,17 @@
 class AnalyticsDashboard {
     constructor() {
         this.gscChart = null;
-        this.backendUrl = 'https://api.themetastack.com';
+        this.backendUrl = window.MOCK_CONFIG?.backendUrl || 'https://api.themetastack.com';
+        this.mockMode = window.MOCK_CONFIG?.enabled || false;
         this.currentData = {
             gsc: null,
             previous: null
         };
+        
+        if (this.mockMode) {
+            console.log('🎭 Mock mode enabled - using mock data instead of API calls');
+        }
+        
         this.init();
     }
 
@@ -117,19 +123,64 @@ class AnalyticsDashboard {
         });
     }
 
+    // Helper method to fetch data (real API or mock)
+    async fetchData(endpoint, params = {}) {
+        if (this.mockMode) {
+            return this.fetchMockData(endpoint, params);
+        } else {
+            return this.fetchRealData(endpoint, params);
+        }
+    }
+
+    // Fetch real API data
+    async fetchRealData(endpoint, params = {}) {
+        const queryString = new URLSearchParams(params).toString();
+        const url = `${this.backendUrl}${endpoint}${queryString ? '?' + queryString : ''}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+        
+        return await response.json();
+    }
+
+    // Fetch mock data
+    async fetchMockData(endpoint, params = {}) {
+        if (!window.mockDataGenerator) {
+            throw new Error('Mock data generator not loaded');
+        }
+
+        const generator = window.mockDataGenerator;
+
+        // Parse endpoint and return appropriate mock data
+        if (endpoint === '/api/health') {
+            return await generator.getHealth();
+        } else if (endpoint === '/api/gsc/top') {
+            return await generator.getGSCTopPages(params.start, params.end, parseInt(params.limit) || 100);
+        } else if (endpoint === '/api/gsc/daily') {
+            return await generator.getGSCDaily(params.start, params.end);
+        } else if (endpoint === '/api/gsc/queries') {
+            return await generator.getGSCQueries(params.page, params.start, params.end, parseInt(params.limit) || 100);
+        } else if (endpoint === '/api/scoreboard') {
+            return await generator.getScoreboard(params.start, params.end);
+        } else {
+            throw new Error(`Unknown endpoint: ${endpoint}`);
+        }
+    }
+
     async initializeAPI() {
         try {
-            console.log('🔍 Attempting to connect to backend at:', this.backendUrl);
-            const healthResponse = await fetch(`${this.backendUrl}/api/health`);
-            console.log('📡 Health response status:', healthResponse.status);
-            
-            if (healthResponse.ok) {
-                const health = await healthResponse.json();
-                console.log('✅ Backend connected successfully:', health);
+            if (this.mockMode) {
+                console.log('🎭 Mock mode: Skipping backend connection check');
                 this.loadData();
-            } else {
-                throw new Error(`Backend health check failed with status: ${healthResponse.status}`);
+                return;
             }
+
+            console.log('🔍 Attempting to connect to backend at:', this.backendUrl);
+            const health = await this.fetchData('/api/health');
+            console.log('✅ Backend connected successfully:', health);
+            this.loadData();
         } catch (error) {
             console.error('❌ Backend connection failed:', error);
             this.showNotification('Cannot connect to backend server. Please ensure the backend is running on port 3001.', 'error');
@@ -171,7 +222,7 @@ class AnalyticsDashboard {
 
     async updateOverviewMetrics() {
         try {
-            console.log('📊 Loading key metrics from real APIs...');
+            console.log(this.mockMode ? '🎭 Loading key metrics from mock data...' : '📊 Loading key metrics from real APIs...');
             
             // Get current date range (last 30 days)
             const endDate = new Date();
@@ -185,11 +236,11 @@ class AnalyticsDashboard {
             
             // Get GSC data for impressions and clicks
             console.log('🔍 Fetching GSC data...');
-            const gscResponse = await fetch(`${this.backendUrl}/api/gsc/top?start=${startDateStr}&end=${endDateStr}&limit=1000`);
-            if (!gscResponse.ok) {
-                throw new Error(`GSC API failed: ${gscResponse.status}`);
-            }
-            const gscData = await gscResponse.json();
+            const gscData = await this.fetchData('/api/gsc/top', {
+                start: startDateStr,
+                end: endDateStr,
+                limit: 1000
+            });
             console.log('✅ GSC data loaded:', gscData.length, 'pages');
             
             // Calculate key metrics from GSC data only
@@ -206,7 +257,7 @@ class AnalyticsDashboard {
                 avgPosition: avgPosition.toFixed(1)
             });
             
-            // Update Key Metrics cards with real data
+            // Update Key Metrics cards with data
             document.getElementById('totalClicks').textContent = totalClicks.toLocaleString();
             document.getElementById('searchImpressions').textContent = totalImpressions.toLocaleString();
             document.getElementById('clickThroughRate').textContent = avgCTR.toFixed(2) + '%';
@@ -223,11 +274,11 @@ class AnalyticsDashboard {
             // Store current data for signal analysis
             this.currentData.gsc = gscData;
             
-            console.log('✅ Key metrics updated with real data');
+            console.log(this.mockMode ? '✅ Key metrics updated with mock data' : '✅ Key metrics updated with real data');
             
         } catch (error) {
             console.error('❌ Error updating overview metrics:', error);
-            this.showNotification('Error loading real data: ' + error.message, 'error');
+            this.showNotification('Error loading data: ' + error.message, 'error');
             
             // Show loading state
             document.getElementById('totalClicks').textContent = 'Loading...';
@@ -272,14 +323,11 @@ class AnalyticsDashboard {
             console.log('📊 Loading top performing pages for date range:', { startDateStr, endDateStr, days });
             
             // Get GSC pages data
-            const gscUrl = `${this.backendUrl}/api/gsc/top?start=${startDateStr}&end=${endDateStr}&limit=100`;
-            const gscResponse = await fetch(gscUrl);
-            
-            if (!gscResponse.ok) {
-                throw new Error(`GSC pages request failed: ${gscResponse.status}`);
-            }
-            
-            const pagesData = await gscResponse.json();
+            const pagesData = await this.fetchData('/api/gsc/top', {
+                start: startDateStr,
+                end: endDateStr,
+                limit: 100
+            });
             console.log('📈 GSC Pages data received:', pagesData.length, 'pages');
             
             // Sort by clicks and take top 6
@@ -676,13 +724,11 @@ class AnalyticsDashboard {
             const startDateStr = startDate.toISOString().split('T')[0];
             const endDateStr = endDate.toISOString().split('T')[0];
             
-            const response = await fetch(`${this.backendUrl}/api/gsc/top?start=${startDateStr}&end=${endDateStr}&limit=100`);
-            
-            if (!response.ok) {
-                throw new Error('GSC data request failed');
-            }
-            
-            const gscData = await response.json();
+            const gscData = await this.fetchData('/api/gsc/top', {
+                start: startDateStr,
+                end: endDateStr,
+                limit: 100
+            });
             console.log('📊 GSC data received:', gscData);
             
             // Filter pages based on signal type criteria
@@ -879,23 +925,18 @@ class AnalyticsDashboard {
             console.log('📊 Fetching GSC data for date range:', { startDateStr, endDateStr });
             
             // Get daily data for chart
-            const dailyResponse = await fetch(`${this.backendUrl}/api/gsc/daily?start=${startDateStr}&end=${endDateStr}`);
-            
-            if (!dailyResponse.ok) {
-                throw new Error(`Daily data request failed: ${dailyResponse.status}`);
-            }
-            
-            const dailyData = await dailyResponse.json();
+            const dailyData = await this.fetchData('/api/gsc/daily', {
+                start: startDateStr,
+                end: endDateStr
+            });
             console.log('📈 GSC Daily data received:', dailyData.length, 'days');
             
             // Get top pages for aggregated metrics
-            const topPagesResponse = await fetch(`${this.backendUrl}/api/gsc/top?start=${startDateStr}&end=${endDateStr}&limit=1000`);
-            
-            if (!topPagesResponse.ok) {
-                throw new Error(`Top pages request failed: ${topPagesResponse.status}`);
-            }
-            
-            const topPages = await topPagesResponse.json();
+            const topPages = await this.fetchData('/api/gsc/top', {
+                start: startDateStr,
+                end: endDateStr,
+                limit: 1000
+            });
             console.log('📊 GSC Top pages received:', topPages.length, 'pages');
             
             // Process the real GSC data
@@ -966,13 +1007,10 @@ class AnalyticsDashboard {
             const startDateStr = startDate.toISOString().split('T')[0];
             const endDateStr = endDate.toISOString().split('T')[0];
             
-            const response = await fetch(`${this.backendUrl}/api/scoreboard?start=${startDateStr}&end=${endDateStr}`);
-            
-            if (!response.ok) {
-                throw new Error('Scoreboard request failed');
-            }
-            
-            const scoreboardData = await response.json();
+            const scoreboardData = await this.fetchData('/api/scoreboard', {
+                start: startDateStr,
+                end: endDateStr
+            });
             console.log('📊 Scoreboard data received:', scoreboardData);
             
             // Convert scoreboard data to signals
@@ -1249,15 +1287,12 @@ class AnalyticsDashboard {
             const startDateStr = startDate.toISOString().split('T')[0];
             const endDateStr = endDate.toISOString().split('T')[0];
             
-            const response = await fetch(`${this.backendUrl}/api/scoreboard?start=${startDateStr}&end=${endDateStr}`);
-            
-            if (response.ok) {
-                const scoreboardData = await response.json();
-                const suggestions = this.convertScoreboardToSuggestions(scoreboardData);
-                this.displaySuggestions(suggestions);
-            } else {
-                throw new Error('Scoreboard request failed');
-            }
+            const scoreboardData = await this.fetchData('/api/scoreboard', {
+                start: startDateStr,
+                end: endDateStr
+            });
+            const suggestions = this.convertScoreboardToSuggestions(scoreboardData);
+            this.displaySuggestions(suggestions);
         } catch (error) {
             console.warn('Failed to load real suggestions, using mock data:', error.message);
             this.loadMockSuggestions();
